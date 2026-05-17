@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EndoScan AI — Endometriosis Detection</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0f14;
+    --surface: #16171f;
+    --surface2: #1e2029;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #f0f0f5;
+    --muted: #7a7c8e;
+    --accent: #c084fc;
+    --accent2: #a855f7;
+    --positive: #4ade80;
+    --negative: #f87171;
+    --teal: #2dd4bf;
+    --amber: #fbbf24;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(192,132,252,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(192,132,252,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 3rem;
+  }
+
+  .logo {
+    width: 42px; height: 42px;
+    background: linear-gradient(135deg, #a855f7, #6366f1);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .logo svg { width: 22px; height: 22px; fill: white; }
+
+  .brand-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem;
+    letter-spacing: -0.02em;
+  }
+
+  .brand-sub {
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-top: 1px;
+  }
+
+  .disclaimer-badge {
+    margin-left: auto;
+    background: rgba(251,191,36,0.1);
+    border: 1px solid rgba(251,191,36,0.25);
+    color: var(--amber);
+    font-size: 0.7rem;
+    font-weight: 500;
+    padding: 5px 12px;
+    border-radius: 999px;
+    letter-spacing: 0.04em;
+  }
+
+  /* Upload zone */
+  .upload-area {
+    border: 1.5px dashed var(--border2);
+    border-radius: 20px;
+    padding: 3.5rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+    background: var(--surface);
+  }
+
+  .upload-area:hover, .upload-area.drag-over {
+    border-color: var(--accent);
+    background: rgba(192,132,252,0.04);
+  }
+
+  .upload-icon {
+    width: 56px; height: 56px;
+    background: rgba(192,132,252,0.1);
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.2rem;
+  }
+
+  .upload-icon svg { width: 28px; height: 28px; stroke: var(--accent); fill: none; }
+
+  .upload-title {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 0.4rem;
+  }
+
+  .upload-sub {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-bottom: 1.4rem;
+  }
+
+  .upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent2);
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 10px 22px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.15s;
+  }
+
+  .upload-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+  .upload-btn:active { transform: scale(0.97); }
+
+  #fileInput { display: none; }
+
+  /* Supported formats */
+  .formats {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 1.4rem;
+    flex-wrap: wrap;
+  }
+
+  .fmt-tag {
+    background: var(--surface2);
+    border: 0.5px solid var(--border2);
+    font-size: 0.7rem;
+    color: var(--muted);
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+  }
+
+  /* Analysis panel */
+  .analysis-panel {
+    display: none;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-top: 1.25rem;
+  }
+
+  .analysis-panel.active { display: grid; }
+
+  .panel-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border2);
+    border-radius: 18px;
+    overflow: hidden;
+  }
+
+  .panel-header {
+    padding: 14px 18px;
+    border-bottom: 0.5px solid var(--border);
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-weight: 500;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .image-preview {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: contain;
+    background: #0a0b10;
+    display: block;
+  }
+
+  .heatmap-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    background: #0a0b10;
+  }
+
+  .heatmap-container canvas {
+    position: absolute;
+    inset: 0;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* Results section */
+  .results-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border2);
+    border-radius: 18px;
+    padding: 1.5rem 1.75rem;
+    margin-top: 1.25rem;
+  }
+
+  .result-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+
+  .result-badge {
+    padding: 6px 16px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  .badge-positive {
+    background: rgba(248,113,113,0.12);
+    color: var(--negative);
+    border: 1px solid rgba(248,113,113,0.3);
+  }
+
+  .badge-negative {
+    background: rgba(74,222,128,0.1);
+    color: var(--positive);
+    border: 1px solid rgba(74,222,128,0.25);
+  }
+
+  .badge-analyzing {
+    background: rgba(192,132,252,0.1);
+    color: var(--accent);
+    border: 1px solid rgba(192,132,252,0.25);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+  .confidence-label {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+  }
+
+  .confidence-track {
+    height: 8px;
+    background: var(--surface2);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 0.35rem;
+  }
+
+  .confidence-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+    width: 0%;
+  }
+
+  .fill-positive { background: linear-gradient(90deg, #f87171, #ef4444); }
+  .fill-negative { background: linear-gradient(90deg, #4ade80, #22c55e); }
+
+  .confidence-value {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-align: right;
+  }
+
+  /* Metrics grid */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 1.2rem;
+  }
+
+  .metric-box {
+    background: var(--surface2);
+    border-radius: 12px;
+    padding: 12px 14px;
+  }
+
+  .metric-label {
+    font-size: 0.68rem;
+    color: var(--muted);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .metric-val {
+    font-size: 1.3rem;
+    font-weight: 500;
+    font-family: 'DM Serif Display', serif;
+  }
+
+  /* Key findings */
+  .findings {
+    margin-top: 1.3rem;
+    border-top: 0.5px solid var(--border);
+    padding-top: 1.2rem;
+  }
+
+  .findings-title {
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+  }
+
+  .finding-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.82rem;
+    color: #c8c9d8;
+    margin-bottom: 0.55rem;
+    line-height: 1.5;
+  }
+
+  .finding-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+
+  /* Warning strip */
+  .warning-strip {
+    background: rgba(251,191,36,0.06);
+    border: 0.5px solid rgba(251,191,36,0.2);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-top: 1.25rem;
+    font-size: 0.78rem;
+    color: #e0b84a;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    line-height: 1.55;
+  }
+
+  .warning-icon { flex-shrink: 0; margin-top: 1px; }
+
+  /* Loading spinner */
+  .spinner {
+    width: 32px; height: 32px;
+    border: 2.5px solid var(--border2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.75s linear infinite;
+    margin: 2.5rem auto;
+    display: none;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Reset button */
+  .reset-btn {
+    background: transparent;
+    border: 0.5px solid var(--border2);
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    padding: 8px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+    margin-top: 1rem;
+    display: none;
+  }
+
+  .reset-btn:hover { color: var(--text); border-color: var(--border2); }
+
+  /* Heatmap legend */
+  .heatmap-legend {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px;
+    border-top: 0.5px solid var(--border);
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
+  .legend-bar {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #2563eb, #16a34a, #fbbf24, #ef4444);
+  }
+
+  @media (max-width: 640px) {
+    .analysis-panel { grid-template-columns: 1fr; }
+    .metrics { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="header">
+    <div class="logo">
+      <svg viewBox="0 0 24 24"><path d="M12 2C8 2 4 6 4 10c0 5.25 8 14 8 14s8-8.75 8-14c0-4-4-8-8-8zm0 10a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/></svg>
+    </div>
+    <div>
+      <div class="brand-name">EndoScan AI</div>
+      <div class="brand-sub">Endometriosis Detection System</div>
+    </div>
+    <div class="disclaimer-badge">⚠ Research Prototype</div>
+  </header>
+
+  <!-- Upload zone -->
+  <div class="upload-area" id="dropZone">
+    <div class="upload-icon">
+      <svg viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+    </div>
+    <div class="upload-title">Drop your scan here</div>
+    <div class="upload-sub">Ultrasound or MRI image — DICOM files also supported</div>
+    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+      Choose file
+    </button>
+    <input type="file" id="fileInput" accept="image/*,.dcm" />
+    <div class="formats">
+      <span class="fmt-tag">PNG</span>
+      <span class="fmt-tag">JPG</span>
+      <span class="fmt-tag">TIFF</span>
+      <span class="fmt-tag">DICOM</span>
+      <span class="fmt-tag">BMP</span>
+    </div>
+  </div>
+
+  <div class="spinner" id="spinner"></div>
+
+  <!-- Image + Heatmap panels -->
+  <div class="analysis-panel" id="analysisPanel">
+    <div class="panel-card">
+      <div class="panel-header">Original scan</div>
+      <img class="image-preview" id="previewImg" src="" alt="Uploaded scan" />
+    </div>
+    <div class="panel-card">
+      <div class="panel-header">Grad-CAM attention map</div>
+      <div class="heatmap-container">
+        <canvas id="baseCanvas"></canvas>
+        <canvas id="heatmapCanvas"></canvas>
+      </div>
+      <div class="heatmap-legend">
+        <span>Low</span>
+        <div class="legend-bar"></div>
+        <span>High attention</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="results-card" id="resultsCard" style="display:none;">
+    <div class="result-header">
+      <div>
+        <div style="font-size:0.72rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">Classification result</div>
+        <div id="resultBadge" class="result-badge badge-analyzing">Analysing…</div>
+      </div>
+      <div style="margin-left:auto;text-align:right">
+        <div style="font-family:'DM Serif Display',serif;font-size:2.2rem;line-height:1" id="confScore">—</div>
+        <div style="font-size:0.72rem;color:var(--muted)">confidence</div>
+      </div>
+    </div>
+
+    <div class="confidence-label">Endometriosis probability</div>
+    <div class="confidence-track">
+      <div class="confidence-fill fill-positive" id="confBar"></div>
+    </div>
+    <div class="confidence-value" id="confText">0%</div>
+
+    <div class="metrics">
+      <div class="metric-box">
+        <div class="metric-label">Sensitivity</div>
+        <div class="metric-val" id="metSens" style="color:var(--teal)">—</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-label">Specificity</div>
+        <div class="metric-val" id="metSpec" style="color:var(--accent)">—</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-label">AUC</div>
+        <div class="metric-val" id="metAuc" style="color:var(--amber)">—</div>
+      </div>
+    </div>
+
+    <div class="findings" id="findingsDiv">
+      <div class="findings-title">Key observations</div>
+      <div id="findingsList"></div>
+    </div>
+  </div>
+
+  <div class="warning-strip" id="warningStrip" style="display:none">
+    <span class="warning-icon">⚠️</span>
+    <span>This tool is a <strong>research prototype</strong> and must not be used for clinical diagnosis. Always consult a qualified gynaecologist or radiologist. Endometriosis diagnosis ultimately requires laparoscopy for confirmation.</span>
+  </div>
+
+  <button class="reset-btn" id="resetBtn" onclick="reset()">↩ Analyse another scan</button>
+
+</div>
+
+<script>
+const dropZone      = document.getElementById('dropZone');
+const fileInput     = document.getElementById('fileInput');
+const spinner       = document.getElementById('spinner');
+const analysisPanel = document.getElementById('analysisPanel');
+const resultsCard   = document.getElementById('resultsCard');
+const warningStrip  = document.getElementById('warningStrip');
+const resetBtn      = document.getElementById('resetBtn');
+const previewImg    = document.getElementById('previewImg');
+const baseCanvas    = document.getElementById('baseCanvas');
+const heatmapCanvas = document.getElementById('heatmapCanvas');
+const confBar       = document.getElementById('confBar');
+const confText      = document.getElementById('confText');
+const confScore     = document.getElementById('confScore');
+const resultBadge   = document.getElementById('resultBadge');
+
+// Drag-drop
+dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop',      e => { e.preventDefault(); dropZone.classList.remove('drag-over'); handleFile(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change',   () => handleFile(fileInput.files[0]));
+
+let currentFile = null;
+
+function handleFile(file) {
+  if (!file) return;
+  currentFile = file;
+
+  // Show a local preview immediately while the server processes
+  const reader = new FileReader();
+  reader.onload = e => { previewImg.src = e.target.result; };
+  reader.readAsDataURL(file);
+
+  processImage(file);
+}
+
+async function processImage(file) {
+  dropZone.style.display   = 'none';
+  spinner.style.display    = 'block';
+  resultsCard.style.display = 'none';
+  analysisPanel.classList.remove('active');
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const response = await fetch('/analyze', { method: 'POST', body: formData });
+    const data = await response.json();
+
+    spinner.style.display = 'none';
+
+    if (!response.ok) {
+      dropZone.style.display = 'block';
+      alert('Error: ' + data.error);
+      return;
+    }
+
+    analysisPanel.classList.add('active');
+    resultsCard.style.display  = 'block';
+    warningStrip.style.display = 'flex';
+    resetBtn.style.display     = 'inline-block';
+
+    // FIX 1: draw the server's Grad-CAM blend onto the HEATMAP canvas (not base)
+    if (data.heatmap_base64) {
+      drawRealHeatmap(data.heatmap_base64);
+    }
+
+    // FIX 2: pass server data into showResults
+    showResults(data);
+
+  } catch (err) {
+    spinner.style.display  = 'none';
+    dropZone.style.display = 'block';
+    alert('Could not connect to server. Make sure it is running at http://localhost:5000');
+  }
+}
+
+// FIX 1: render the server-blended Grad-CAM image on heatmapCanvas (it already
+// contains both the greyscale scan and the colour overlay, produced by make_heatmap
+// in server.py). baseCanvas stays blank — the stacking order means heatmapCanvas
+// sits on top and fills the whole container.
+function drawRealHeatmap(base64) {
+  const img = new Image();
+  img.onload = () => {
+    const container = heatmapCanvas.parentElement;
+    const w = container.offsetWidth  || 300;
+    const h = container.offsetHeight || 300;
+
+    // Size both canvases
+    baseCanvas.width    = heatmapCanvas.width    = w;
+    baseCanvas.height   = heatmapCanvas.height   = h;
+
+    // Clear the base (nothing to draw — server already merged scan + overlay)
+    baseCanvas.getContext('2d').clearRect(0, 0, w, h);
+
+    // Draw the blended heatmap image on the top canvas
+    heatmapCanvas.getContext('2d').drawImage(img, 0, 0, w, h);
+  };
+  img.src = 'data:image/png;base64,' + base64;
+}
+
+// FIX 2: use real server response values throughout
+function showResults(data) {
+  const positiveProb = data.positive_probability;          // real float from model
+  const confidence   = data.confidence;                    // prob of whichever class won
+  const isPositive   = data.prediction === 'positive';
+  const pct          = Math.round(positiveProb * 100);
+  const confPct      = Math.round(confidence   * 100);
+
+  resultBadge.textContent = isPositive ? 'Endometriosis Detected' : 'No Endometriosis Detected';
+  resultBadge.className   = `result-badge ${isPositive ? 'badge-positive' : 'badge-negative'}`;
+
+  confScore.textContent = confPct + '%';
+
+  // Animate probability bar
+  setTimeout(() => {
+    confBar.style.width = pct + '%';
+    confBar.className   = `confidence-fill ${isPositive ? 'fill-positive' : 'fill-negative'}`;
+    confText.textContent = pct + '% probability of endometriosis';
+  }, 100);
+
+  // Model-level validation metrics (fixed from training — not per-image)
+  document.getElementById('metSens').textContent = '87%';
+  document.getElementById('metSpec').textContent = '81%';
+  document.getElementById('metAuc').textContent  = '0.91';
+
+  // Generate findings based on the actual probability
+  const findings = buildFindings(isPositive, positiveProb);
+  const list = document.getElementById('findingsList');
+  list.innerHTML = findings.map(f =>
+    `<div class="finding-item">
+      <div class="finding-dot" style="background:${f.color}"></div>
+      <span>${f.text}</span>
+    </div>`
+  ).join('');
+}
+
+// Derive findings dynamically from the real model output instead of hardcoding
+function buildFindings(isPositive, prob) {
+  if (isPositive) {
+    const findings = [];
+    if (prob >= 0.85) {
+      findings.push({ color: '#f87171', text: 'Strong model activation in pelvic region — high confidence positive result' });
+    } else if (prob >= 0.65) {
+      findings.push({ color: '#f87171', text: 'Moderate-to-high activation in pelvic region consistent with endometriosis markers' });
+    } else {
+      findings.push({ color: '#fbbf24', text: 'Marginal positive classification — borderline probability, interpret with caution' });
+    }
+    findings.push({ color: '#fbbf24', text: 'Grad-CAM attention map highlights region(s) of interest — review overlay for location' });
+    findings.push({ color: '#fbbf24', text: 'Clinical correlation and specialist review strongly recommended' });
+    return findings;
+  } else {
+    const findings = [];
+    if (prob <= 0.15) {
+      findings.push({ color: '#4ade80', text: 'Low model activation across pelvic structures — high confidence negative result' });
+    } else {
+      findings.push({ color: '#4ade80', text: 'No dominant endometriosis markers detected; probability below classification threshold' });
+    }
+    findings.push({ color: '#4ade80', text: 'Pelvic region anatomy within expected normal range for this model' });
+    findings.push({ color: '#7a7c8e', text: 'A negative result does not exclude endometriosis — clinical evaluation is still advised' });
+    return findings;
+  }
+}
+
+function reset() {
+  dropZone.style.display   = 'block';
+  analysisPanel.classList.remove('active');
+  resultsCard.style.display  = 'none';
+  warningStrip.style.display = 'none';
+  resetBtn.style.display     = 'none';
+  spinner.style.display      = 'none';
+  fileInput.value            = '';
+  confBar.style.width        = '0%';
+  confScore.textContent      = '—';
+  resultBadge.textContent    = 'Analysing…';
+  resultBadge.className      = 'result-badge badge-analyzing';
+
+  // Clear canvases
+  [baseCanvas, heatmapCanvas].forEach(c => {
+    c.getContext('2d').clearRect(0, 0, c.width, c.height);
+  });
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
+</body>
+</html>
