@@ -1,1 +1,1 @@
-web: gunicorn "app.server:app" --bind 0.0.0.0:8000 --timeout 120 --workers 1 
+web: gunicorn "app.server:app" --bind 0.0.0.0:8080 --timeout 120 --workers 1 
