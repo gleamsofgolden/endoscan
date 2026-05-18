@@ -184,6 +184,21 @@ class _Args:
 
 args_obj = _Args()
 
+import threading
+
+def _load_model_background():
+    global model_obj, idx_to_class_map
+    model_path = args_obj.model
+    if Path(model_path).exists():
+        try:
+            model_obj, idx_to_class_map = load_model(model_path, device_obj)
+            print("  Model loaded successfully")
+        except Exception as e:
+            print(f"  Model load failed: {e}")
+    else:
+        print(f"  WARNING: No model found at {model_path}")
+
+threading.Thread(target=_load_model_background, daemon=True).start()
 
 @app.route("/")
 def index():
