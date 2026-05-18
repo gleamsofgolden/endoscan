@@ -13,6 +13,7 @@ import io
 import base64
 import argparse
 from pathlib import Path
+from huggingface_hub import hf_hub_download
 
 import numpy as np
 from PIL import Image
@@ -189,14 +190,30 @@ import threading
 def _load_model_background():
     global model_obj, idx_to_class_map
     model_path = args_obj.model
-    if Path(model_path).exists():
-        try:
-            model_obj, idx_to_class_map = load_model(model_path, device_obj)
-            print("  Model loaded successfully")
-        except Exception as e:
-            print(f"  Model load failed: {e}")
-    else:
-        print(f"  WARNING: No model found at {model_path}")
+
+    # Download from Hugging Face if not present locally
+    if not Path(model_path).exists():
+        hf_repo = os.environ.get("HF_REPO")
+        hf_token = os.environ.get("HF_TOKEN")
+        if hf_repo:
+            print(f"  Downloading model from Hugging Face: {hf_repo}")
+            os.makedirs(os.path.dirname(model_path), exist_ok=True)
+            model_path = hf_hub_download(
+                repo_id=hf_repo,
+                filename="best_model.pt",
+                token=hf_token,
+                local_dir="models"
+            )
+            print("  Download complete")
+        else:
+            print("  WARNING: No model file and no HF_REPO set")
+            return
+
+    try:
+        model_obj, idx_to_class_map = load_model(model_path, device_obj)
+        print("  Model loaded successfully")
+    except Exception as e:
+        print(f"  Model load failed: {e}")
 
 threading.Thread(target=_load_model_background, daemon=True).start()
 
