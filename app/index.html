@@ -256,7 +256,7 @@ body::before {
 
 /* ── ANALYSIS PANEL ── */
 .analysis-panel {
-  display: none; grid-template-columns: 1fr 1fr;
+  display: none; grid-template-columns: 1fr;
   gap: 1rem; margin-top: 1rem;
 }
 .analysis-panel.active { display: grid; }
@@ -276,7 +276,7 @@ body::before {
   background: rgba(255,255,255,0.5);
 }
 .image-preview {
-  width: 100%; aspect-ratio: 1; object-fit: contain;
+  width: 100%; height: auto; object-fit: contain;
   background: #0c0814; display: block;
 }
 
@@ -482,10 +482,6 @@ body::before {
       <div class="panel-header">Original scan</div>
       <img class="image-preview" id="previewImg" src="" alt="Uploaded scan" />
     </div>
-    <div class="panel-card">
-      <div class="panel-header">Scan — inverted contrast</div>
-      <canvas id="contrastCanvas" style="width:100%;aspect-ratio:1;display:block;background:#0c0814;"></canvas>
-    </div>
   </div>
 
   <!-- RESULTS -->
@@ -552,7 +548,6 @@ const resultsCard    = document.getElementById('resultsCard');
 const warningStrip   = document.getElementById('warningStrip');
 const resetBtn       = document.getElementById('resetBtn');
 const previewImg     = document.getElementById('previewImg');
-const contrastCanvas = document.getElementById('contrastCanvas');
 const confBar        = document.getElementById('confBar');
 const confText       = document.getElementById('confText');
 const confScore      = document.getElementById('confScore');
@@ -566,10 +561,7 @@ fileInput.addEventListener('change',   () => handleFile(fileInput.files[0]));
 function handleFile(file) {
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = e => {
-    previewImg.src = e.target.result;
-    drawContrastCanvas(e.target.result);
-  };
+  reader.onload = e => { previewImg.src = e.target.result; };
   reader.readAsDataURL(file);
   processImage(file);
 }
@@ -605,28 +597,6 @@ async function processImage(file) {
     dropZone.style.display    = 'block';
     alert('Could not connect to the server. Please try again.');
   }
-}
-
-function drawContrastCanvas(dataUrl) {
-  const img = new Image();
-  img.onload = () => {
-    const w = img.naturalWidth  || 300;
-    const h = img.naturalHeight || 300;
-    contrastCanvas.width  = w;
-    contrastCanvas.height = h;
-    const ctx = contrastCanvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-    const imageData = ctx.getImageData(0, 0, w, h);
-    const d = imageData.data;
-    for (let i = 0; i < d.length; i += 4) {
-      const avg = (d[i] + d[i+1] + d[i+2]) / 3;
-      const boosted = Math.min(255, Math.max(0, (avg - 128) * 1.8 + 128));
-      const inv = 255 - boosted;
-      d[i] = d[i+1] = d[i+2] = inv;
-    }
-    ctx.putImageData(imageData, 0, 0);
-  };
-  img.src = dataUrl;
 }
 
 function showResults(data) {
@@ -694,7 +664,6 @@ function reset() {
   confScore.textContent      = '—';
   resultBadge.textContent    = 'Analysing…';
   resultBadge.className      = 'result-badge badge-analyzing';
-  contrastCanvas.getContext('2d').clearRect(0, 0, contrastCanvas.width, contrastCanvas.height);
 }
 </script>
 </body>
