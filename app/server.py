@@ -219,7 +219,9 @@ threading.Thread(target=_load_model_background, daemon=True).start()
 
 @app.route("/")
 def index():
-    return send_from_directory(args_obj.app_dir, "index.html")
+    index_path = os.path.join(os.path.dirname(__file__), "index.html")
+    with open(index_path, 'r') as f:
+        return f.read(), 200, {'Content-Type': 'text/html; charset=utf-8'}
 
 
 @app.route("/analyze", methods=["POST"])
