@@ -5,43 +5,63 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EndoScan AI — Endometriosis Detection</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Nunito:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg: #0e0f14;
-    --surface: #16171f;
-    --surface2: #1e2029;
-    --border: rgba(255,255,255,0.07);
-    --border2: rgba(255,255,255,0.12);
-    --text: #f0f0f5;
-    --muted: #7a7c8e;
-    --accent: #c084fc;
-    --accent2: #a855f7;
-    --positive: #4ade80;
-    --negative: #f87171;
-    --teal: #2dd4bf;
-    --amber: #fbbf24;
+    --bg: #fce4ec;
+    --surface: rgba(255,255,255,0.45);
+    --surface2: rgba(255,240,245,0.55);
+    --glass: rgba(255,255,255,0.35);
+    --glass-strong: rgba(255,255,255,0.6);
+    --border: rgba(236,100,130,0.18);
+    --border2: rgba(236,100,130,0.28);
+    --border-glass: rgba(255,255,255,0.55);
+    --text: #2d1a22;
+    --muted: #a07080;
+    --accent: #e8527a;
+    --accent2: #d63d67;
+    --accent-light: #ffd6e0;
+    --positive: #2d9e6b;
+    --negative: #e8527a;
+    --teal: #2d9e6b;
+    --amber: #c97b2a;
+    --pink-soft: #f9c5d1;
+    --pink-mid: #f48fb1;
+    --rose: #c2185b;
   }
 
   body {
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Nunito', sans-serif;
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
     overflow-x: hidden;
   }
 
-  /* Grid background */
+  /* Rich layered background so glass has something to blur */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
-    background-image:
-      linear-gradient(rgba(192,132,252,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(192,132,252,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
+    background:
+      radial-gradient(ellipse 70% 55% at 5%  0%,   rgba(255,105,155,0.55) 0%, transparent 55%),
+      radial-gradient(ellipse 55% 50% at 95% 100%,  rgba(255,180,200,0.5)  0%, transparent 55%),
+      radial-gradient(ellipse 60% 45% at 80% 10%,   rgba(252,130,170,0.35) 0%, transparent 50%),
+      radial-gradient(ellipse 50% 60% at 15% 85%,   rgba(255,150,180,0.3)  0%, transparent 55%),
+      radial-gradient(ellipse 80% 80% at 50% 50%,   rgba(255,220,230,0.4)  0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    top: -150px; right: -150px;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(232,82,122,0.25) 0%, transparent 65%);
     pointer-events: none;
     z-index: 0;
   }
@@ -49,135 +69,177 @@
   .wrap {
     position: relative;
     z-index: 1;
-    max-width: 900px;
+    max-width: 880px;
     margin: 0 auto;
-    padding: 2.5rem 1.5rem 4rem;
+    padding: 2.5rem 1.5rem 5rem;
   }
 
-  /* Header */
   .header {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 16px;
     margin-bottom: 3rem;
   }
 
   .logo {
-    width: 42px; height: 42px;
-    background: linear-gradient(135deg, #a855f7, #6366f1);
-    border-radius: 12px;
+    width: 48px; height: 48px;
+    background: linear-gradient(135deg, #e8527a, #c2185b);
+    border-radius: 16px;
     display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 20px rgba(232,82,122,0.35);
+    flex-shrink: 0;
   }
 
-  .logo svg { width: 22px; height: 22px; fill: white; }
+  .logo svg { width: 24px; height: 24px; fill: white; }
 
   .brand-name {
-    font-family: 'DM Serif Display', serif;
-    font-size: 1.5rem;
-    letter-spacing: -0.02em;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    color: var(--accent2);
+    letter-spacing: -0.01em;
   }
 
   .brand-sub {
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     color: var(--muted);
-    letter-spacing: 0.12em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    margin-top: 1px;
+    margin-top: 2px;
+    font-weight: 600;
   }
 
   .disclaimer-badge {
     margin-left: auto;
-    background: rgba(251,191,36,0.1);
-    border: 1px solid rgba(251,191,36,0.25);
+    background: rgba(255,255,255,0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(201,123,42,0.35);
     color: var(--amber);
-    font-size: 0.7rem;
-    font-weight: 500;
-    padding: 5px 12px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 5px 14px;
     border-radius: 999px;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
   }
 
-  /* Upload zone */
+  .tagline {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .tagline h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--accent2);
+    margin-bottom: 0.5rem;
+    line-height: 1.25;
+  }
+
+  .tagline h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .tagline p {
+    font-size: 0.88rem;
+    color: var(--muted);
+    max-width: 420px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
   .upload-area {
-    border: 1.5px dashed var(--border2);
-    border-radius: 20px;
+    border: 1.5px dashed rgba(255,255,255,0.75);
+    border-radius: 24px;
     padding: 3.5rem 2rem;
     text-align: center;
     cursor: pointer;
-    transition: border-color 0.2s, background 0.2s;
-    position: relative;
-    background: var(--surface);
+    transition: all 0.25s ease;
+    background: rgba(255,255,255,0.4);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 8px 32px rgba(232,82,122,0.12), inset 0 1px 0 rgba(255,255,255,0.85);
   }
 
   .upload-area:hover, .upload-area.drag-over {
-    border-color: var(--accent);
-    background: rgba(192,132,252,0.04);
+    border-color: rgba(255,255,255,1);
+    background: rgba(255,255,255,0.62);
+    transform: translateY(-3px);
+    box-shadow: 0 16px 48px rgba(232,82,122,0.2), inset 0 1px 0 rgba(255,255,255,0.95);
   }
 
   .upload-icon {
-    width: 56px; height: 56px;
-    background: rgba(192,132,252,0.1);
-    border-radius: 16px;
+    width: 64px; height: 64px;
+    background: linear-gradient(135deg, #fce4ec, #f8bbd0);
+    border-radius: 20px;
     display: flex; align-items: center; justify-content: center;
     margin: 0 auto 1.2rem;
+    box-shadow: 0 4px 15px rgba(232,82,122,0.2);
   }
 
-  .upload-icon svg { width: 28px; height: 28px; stroke: var(--accent); fill: none; }
+  .upload-icon svg { width: 30px; height: 30px; stroke: var(--accent); fill: none; }
 
   .upload-title {
-    font-size: 1.1rem;
-    font-weight: 500;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    color: var(--text);
     margin-bottom: 0.4rem;
   }
 
   .upload-sub {
     font-size: 0.82rem;
     color: var(--muted);
-    margin-bottom: 1.4rem;
+    margin-bottom: 1.6rem;
+    line-height: 1.5;
   }
 
   .upload-btn {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: var(--accent2);
+    background: linear-gradient(135deg, #e8527a, #c2185b);
     color: white;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.85rem;
-    font-weight: 500;
-    padding: 10px 22px;
-    border-radius: 10px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    padding: 12px 26px;
+    border-radius: 999px;
     border: none;
     cursor: pointer;
-    transition: opacity 0.15s, transform 0.15s;
+    transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 20px rgba(232,82,122,0.4);
+    letter-spacing: 0.02em;
   }
 
-  .upload-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+  .upload-btn:hover { opacity: 0.92; transform: translateY(-1px); box-shadow: 0 6px 28px rgba(232,82,122,0.5); }
   .upload-btn:active { transform: scale(0.97); }
 
   #fileInput { display: none; }
 
-  /* Supported formats */
   .formats {
     display: flex;
     justify-content: center;
     gap: 8px;
-    margin-top: 1.4rem;
+    margin-top: 1.5rem;
     flex-wrap: wrap;
   }
 
   .fmt-tag {
-    background: var(--surface2);
-    border: 0.5px solid var(--border2);
-    font-size: 0.7rem;
+    background: rgba(255,255,255,0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.7);
+    font-size: 0.68rem;
     color: var(--muted);
-    padding: 3px 10px;
+    padding: 3px 11px;
     border-radius: 6px;
-    font-weight: 500;
-    letter-spacing: 0.06em;
+    font-weight: 600;
+    letter-spacing: 0.07em;
   }
 
-  /* Analysis panel */
   .analysis-panel {
     display: none;
     grid-template-columns: 1fr 1fr;
@@ -188,27 +250,33 @@
   .analysis-panel.active { display: grid; }
 
   .panel-card {
-    background: var(--surface);
-    border: 0.5px solid var(--border2);
-    border-radius: 18px;
+    background: rgba(255,255,255,0.42);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255,255,255,0.6);
+    border-radius: 20px;
     overflow: hidden;
+    box-shadow: 0 8px 32px rgba(232,82,122,0.1), inset 0 1px 0 rgba(255,255,255,0.8);
   }
 
   .panel-header {
-    padding: 14px 18px;
-    border-bottom: 0.5px solid var(--border);
-    font-size: 0.75rem;
+    padding: 13px 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.5);
+    font-size: 0.7rem;
     color: var(--muted);
-    font-weight: 500;
-    letter-spacing: 0.07em;
+    font-weight: 700;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
+    background: rgba(255,240,245,0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
 
   .image-preview {
     width: 100%;
     aspect-ratio: 1;
     object-fit: contain;
-    background: #0a0b10;
+    background: #fff8f9;
     display: block;
   }
 
@@ -216,7 +284,7 @@
     position: relative;
     width: 100%;
     aspect-ratio: 1;
-    background: #0a0b10;
+    background: #fff8f9;
   }
 
   .heatmap-container canvas {
@@ -226,13 +294,15 @@
     height: 100% !important;
   }
 
-  /* Results section */
   .results-card {
-    background: var(--surface);
-    border: 0.5px solid var(--border2);
-    border-radius: 18px;
-    padding: 1.5rem 1.75rem;
+    background: rgba(255,255,255,0.42);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.6);
+    border-radius: 20px;
+    padding: 1.75rem 2rem;
     margin-top: 1.25rem;
+    box-shadow: 0 8px 32px rgba(232,82,122,0.1), inset 0 1px 0 rgba(255,255,255,0.8);
   }
 
   .result-header {
@@ -243,29 +313,29 @@
   }
 
   .result-badge {
-    padding: 6px 16px;
+    padding: 7px 18px;
     border-radius: 999px;
-    font-size: 0.8rem;
-    font-weight: 600;
+    font-size: 0.78rem;
+    font-weight: 700;
     letter-spacing: 0.05em;
   }
 
   .badge-positive {
-    background: rgba(248,113,113,0.12);
-    color: var(--negative);
-    border: 1px solid rgba(248,113,113,0.3);
+    background: rgba(232,82,122,0.1);
+    color: var(--accent2);
+    border: 1.5px solid rgba(232,82,122,0.35);
   }
 
   .badge-negative {
-    background: rgba(74,222,128,0.1);
+    background: rgba(45,158,107,0.08);
     color: var(--positive);
-    border: 1px solid rgba(74,222,128,0.25);
+    border: 1.5px solid rgba(45,158,107,0.3);
   }
 
   .badge-analyzing {
-    background: rgba(192,132,252,0.1);
+    background: rgba(232,82,122,0.08);
     color: var(--accent);
-    border: 1px solid rgba(192,132,252,0.25);
+    border: 1.5px solid rgba(232,82,122,0.2);
     animation: pulse 1.5s ease-in-out infinite;
   }
 
@@ -274,15 +344,16 @@
   .confidence-label {
     font-size: 0.78rem;
     color: var(--muted);
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
   }
 
   .confidence-track {
-    height: 8px;
+    height: 10px;
     background: var(--surface2);
     border-radius: 999px;
     overflow: hidden;
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.4rem;
   }
 
   .confidence-fill {
@@ -292,8 +363,8 @@
     width: 0%;
   }
 
-  .fill-positive { background: linear-gradient(90deg, #f87171, #ef4444); }
-  .fill-negative { background: linear-gradient(90deg, #4ade80, #22c55e); }
+  .fill-positive { background: linear-gradient(90deg, #f48fb1, #c2185b); }
+  .fill-negative { background: linear-gradient(90deg, #81c784, #2d9e6b); }
 
   .confidence-value {
     font-size: 0.75rem;
@@ -301,122 +372,145 @@
     text-align: right;
   }
 
-  /* Metrics grid */
   .metrics {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
-    margin-top: 1.2rem;
+    margin-top: 1.3rem;
   }
 
   .metric-box {
-    background: var(--surface2);
-    border-radius: 12px;
-    padding: 12px 14px;
+    background: rgba(255,255,255,0.35);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 14px;
+    padding: 14px 16px;
+    border: 1px solid rgba(255,255,255,0.55);
+    text-align: center;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
   }
 
   .metric-label {
-    font-size: 0.68rem;
-    color: var(--muted);
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
-    margin-bottom: 4px;
-  }
-
-  .metric-val {
-    font-size: 1.3rem;
-    font-weight: 500;
-    font-family: 'DM Serif Display', serif;
-  }
-
-  /* Key findings */
-  .findings {
-    margin-top: 1.3rem;
-    border-top: 0.5px solid var(--border);
-    padding-top: 1.2rem;
-  }
-
-  .findings-title {
-    font-size: 0.72rem;
+    font-size: 0.66rem;
     color: var(--muted);
     letter-spacing: 0.09em;
     text-transform: uppercase;
-    margin-bottom: 0.8rem;
+    margin-bottom: 5px;
+    font-weight: 700;
+  }
+
+  .metric-val {
+    font-size: 1.4rem;
+    font-weight: 400;
+    font-family: 'Playfair Display', serif;
+  }
+
+  .findings {
+    margin-top: 1.4rem;
+    border-top: 1px solid var(--border);
+    padding-top: 1.3rem;
+  }
+
+  .findings-title {
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.9rem;
+    font-weight: 700;
   }
 
   .finding-item {
     display: flex;
     align-items: flex-start;
     gap: 10px;
-    font-size: 0.82rem;
-    color: #c8c9d8;
-    margin-bottom: 0.55rem;
-    line-height: 1.5;
+    font-size: 0.83rem;
+    color: #6b3a4a;
+    margin-bottom: 0.6rem;
+    line-height: 1.55;
   }
 
   .finding-dot {
-    width: 6px; height: 6px;
+    width: 7px; height: 7px;
     border-radius: 50%;
     margin-top: 6px;
     flex-shrink: 0;
   }
 
-  /* Warning strip */
   .warning-strip {
-    background: rgba(251,191,36,0.06);
-    border: 0.5px solid rgba(251,191,36,0.2);
-    border-radius: 12px;
-    padding: 12px 16px;
+    background: rgba(255,248,230,0.45);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(201,123,42,0.3);
+    border-radius: 14px;
+    padding: 14px 18px;
     margin-top: 1.25rem;
     font-size: 0.78rem;
-    color: #e0b84a;
+    color: #8a5c1a;
     display: flex;
     gap: 10px;
     align-items: flex-start;
-    line-height: 1.55;
+    line-height: 1.6;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
   }
 
   .warning-icon { flex-shrink: 0; margin-top: 1px; }
 
-  /* Loading spinner */
+  .spinner-wrap {
+    text-align: center;
+    padding: 2.5rem 0;
+    display: none;
+  }
+
   .spinner {
-    width: 32px; height: 32px;
-    border: 2.5px solid var(--border2);
+    width: 36px; height: 36px;
+    border: 3px solid var(--pink-soft);
     border-top-color: var(--accent);
     border-radius: 50%;
     animation: spin 0.75s linear infinite;
-    margin: 2.5rem auto;
-    display: none;
+    margin: 0 auto 1rem;
+  }
+
+  .spinner-text {
+    font-size: 0.82rem;
+    color: var(--muted);
+    font-style: italic;
   }
 
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Reset button */
   .reset-btn {
-    background: transparent;
-    border: 0.5px solid var(--border2);
+    background: rgba(255,255,255,0.35);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.6);
     color: var(--muted);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.78rem;
-    padding: 8px 18px;
-    border-radius: 8px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 9px 20px;
+    border-radius: 999px;
     cursor: pointer;
-    transition: color 0.15s, border-color 0.15s;
+    transition: all 0.2s ease;
     margin-top: 1rem;
     display: none;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
   }
 
-  .reset-btn:hover { color: var(--text); border-color: var(--border2); }
+  .reset-btn:hover { color: var(--accent2); border-color: var(--accent); background: rgba(255,255,255,0.55); }
 
-  /* Heatmap legend */
   .heatmap-legend {
     display: flex;
     align-items: center;
     gap: 10px;
     padding: 10px 18px;
-    border-top: 0.5px solid var(--border);
-    font-size: 0.7rem;
+    border-top: 1px solid rgba(255,255,255,0.5);
+    font-size: 0.68rem;
     color: var(--muted);
+    font-weight: 600;
+    background: rgba(255,240,245,0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
   .legend-bar {
@@ -426,13 +520,30 @@
     background: linear-gradient(90deg, #2563eb, #16a34a, #fbbf24, #ef4444);
   }
 
+  .petal {
+    position: fixed;
+    border-radius: 50% 0 50% 0;
+    opacity: 0.06;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .petal-1 { width: 220px; height: 220px; background: var(--accent); top: 8%; left: -70px; transform: rotate(30deg); }
+  .petal-2 { width: 160px; height: 160px; background: var(--pink-mid); bottom: 18%; right: -50px; transform: rotate(-20deg); }
+  .petal-3 { width: 110px; height: 110px; background: var(--accent2); top: 58%; left: 3%; transform: rotate(45deg); }
+
   @media (max-width: 640px) {
     .analysis-panel { grid-template-columns: 1fr; }
-    .metrics { grid-template-columns: repeat(3, 1fr); }
+    .tagline h1 { font-size: 1.5rem; }
   }
 </style>
 </head>
 <body>
+
+<div class="petal petal-1"></div>
+<div class="petal petal-2"></div>
+<div class="petal petal-3"></div>
+
 <div class="wrap">
 
   <header class="header">
@@ -441,18 +552,22 @@
     </div>
     <div>
       <div class="brand-name">EndoScan AI</div>
-      <div class="brand-sub">Endometriosis Detection System</div>
+      <div class="brand-sub">Endometriosis Detection</div>
     </div>
     <div class="disclaimer-badge">⚠ Research Prototype</div>
   </header>
 
-  <!-- Upload zone -->
+  <div class="tagline">
+    <h1>Scan with <em>clarity,</em><br>act with confidence</h1>
+    <p>AI-powered analysis of pelvic MRI and ultrasound scans to support earlier endometriosis detection.</p>
+  </div>
+
   <div class="upload-area" id="dropZone">
     <div class="upload-icon">
       <svg viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
     </div>
     <div class="upload-title">Drop your scan here</div>
-    <div class="upload-sub">Ultrasound or MRI image — DICOM files also supported</div>
+    <div class="upload-sub">Pelvic MRI or ultrasound image — DICOM files also supported</div>
     <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
       Choose file
@@ -467,9 +582,11 @@
     </div>
   </div>
 
-  <div class="spinner" id="spinner"></div>
+  <div class="spinner-wrap" id="spinnerWrap">
+    <div class="spinner"></div>
+    <div class="spinner-text">Analysing your scan, please wait…</div>
+  </div>
 
-  <!-- Image + Heatmap panels -->
   <div class="analysis-panel" id="analysisPanel">
     <div class="panel-card">
       <div class="panel-header">Original scan</div>
@@ -489,16 +606,15 @@
     </div>
   </div>
 
-  <!-- Results -->
   <div class="results-card" id="resultsCard" style="display:none;">
     <div class="result-header">
       <div>
-        <div style="font-size:0.72rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">Classification result</div>
+        <div style="font-size:0.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;font-weight:700;">Classification result</div>
         <div id="resultBadge" class="result-badge badge-analyzing">Analysing…</div>
       </div>
       <div style="margin-left:auto;text-align:right">
-        <div style="font-family:'DM Serif Display',serif;font-size:2.2rem;line-height:1" id="confScore">—</div>
-        <div style="font-size:0.72rem;color:var(--muted)">confidence</div>
+        <div style="font-family:'Playfair Display',serif;font-size:2.4rem;line-height:1;color:var(--accent2)" id="confScore">—</div>
+        <div style="font-size:0.7rem;color:var(--muted);font-weight:600;">confidence</div>
       </div>
     </div>
 
@@ -541,7 +657,7 @@
 <script>
 const dropZone      = document.getElementById('dropZone');
 const fileInput     = document.getElementById('fileInput');
-const spinner       = document.getElementById('spinner');
+const spinnerWrap   = document.getElementById('spinnerWrap');
 const analysisPanel = document.getElementById('analysisPanel');
 const resultsCard   = document.getElementById('resultsCard');
 const warningStrip  = document.getElementById('warningStrip');
@@ -554,29 +670,22 @@ const confText      = document.getElementById('confText');
 const confScore     = document.getElementById('confScore');
 const resultBadge   = document.getElementById('resultBadge');
 
-// Drag-drop
 dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
 dropZone.addEventListener('drop',      e => { e.preventDefault(); dropZone.classList.remove('drag-over'); handleFile(e.dataTransfer.files[0]); });
 fileInput.addEventListener('change',   () => handleFile(fileInput.files[0]));
 
-let currentFile = null;
-
 function handleFile(file) {
   if (!file) return;
-  currentFile = file;
-
-  // Show a local preview immediately while the server processes
   const reader = new FileReader();
   reader.onload = e => { previewImg.src = e.target.result; };
   reader.readAsDataURL(file);
-
   processImage(file);
 }
 
 async function processImage(file) {
-  dropZone.style.display   = 'none';
-  spinner.style.display    = 'block';
+  dropZone.style.display    = 'none';
+  spinnerWrap.style.display = 'block';
   resultsCard.style.display = 'none';
   analysisPanel.classList.remove('active');
 
@@ -586,8 +695,7 @@ async function processImage(file) {
   try {
     const response = await fetch('/analyze', { method: 'POST', body: formData });
     const data = await response.json();
-
-    spinner.style.display = 'none';
+    spinnerWrap.style.display = 'none';
 
     if (!response.ok) {
       dropZone.style.display = 'block';
@@ -600,74 +708,53 @@ async function processImage(file) {
     warningStrip.style.display = 'flex';
     resetBtn.style.display     = 'inline-block';
 
-    // FIX 1: draw the server's Grad-CAM blend onto the HEATMAP canvas (not base)
-    if (data.heatmap_base64) {
-      drawRealHeatmap(data.heatmap_base64);
-    }
-
-    // FIX 2: pass server data into showResults
+    if (data.heatmap_base64) drawRealHeatmap(data.heatmap_base64);
     showResults(data);
 
   } catch (err) {
-    spinner.style.display  = 'none';
-    dropZone.style.display = 'block';
-    alert('Could not connect to server. Make sure it is running at http://localhost:5000');
+    spinnerWrap.style.display = 'none';
+    dropZone.style.display    = 'block';
+    alert('Could not connect to the server. Please try again.');
   }
 }
 
-// FIX 1: render the server-blended Grad-CAM image on heatmapCanvas (it already
-// contains both the greyscale scan and the colour overlay, produced by make_heatmap
-// in server.py). baseCanvas stays blank — the stacking order means heatmapCanvas
-// sits on top and fills the whole container.
 function drawRealHeatmap(base64) {
   const img = new Image();
   img.onload = () => {
     const container = heatmapCanvas.parentElement;
     const w = container.offsetWidth  || 300;
     const h = container.offsetHeight || 300;
-
-    // Size both canvases
-    baseCanvas.width    = heatmapCanvas.width    = w;
-    baseCanvas.height   = heatmapCanvas.height   = h;
-
-    // Clear the base (nothing to draw — server already merged scan + overlay)
+    baseCanvas.width = heatmapCanvas.width = w;
+    baseCanvas.height = heatmapCanvas.height = h;
     baseCanvas.getContext('2d').clearRect(0, 0, w, h);
-
-    // Draw the blended heatmap image on the top canvas
     heatmapCanvas.getContext('2d').drawImage(img, 0, 0, w, h);
   };
   img.src = 'data:image/png;base64,' + base64;
 }
 
-// FIX 2: use real server response values throughout
 function showResults(data) {
-  const positiveProb = data.positive_probability;          // real float from model
-  const confidence   = data.confidence;                    // prob of whichever class won
+  const positiveProb = data.positive_probability;
+  const confidence   = data.confidence;
   const isPositive   = data.prediction === 'positive';
   const pct          = Math.round(positiveProb * 100);
-  const confPct      = Math.round(confidence   * 100);
+  const confPct      = Math.round(confidence * 100);
 
   resultBadge.textContent = isPositive ? 'Endometriosis Detected' : 'No Endometriosis Detected';
   resultBadge.className   = `result-badge ${isPositive ? 'badge-positive' : 'badge-negative'}`;
+  confScore.textContent   = confPct + '%';
 
-  confScore.textContent = confPct + '%';
-
-  // Animate probability bar
   setTimeout(() => {
-    confBar.style.width = pct + '%';
-    confBar.className   = `confidence-fill ${isPositive ? 'fill-positive' : 'fill-negative'}`;
+    confBar.style.width  = pct + '%';
+    confBar.className    = `confidence-fill ${isPositive ? 'fill-positive' : 'fill-negative'}`;
     confText.textContent = pct + '% probability of endometriosis';
   }, 100);
 
-  // Model-level validation metrics (fixed from training — not per-image)
   document.getElementById('metSens').textContent = '87%';
   document.getElementById('metSpec').textContent = '81%';
   document.getElementById('metAuc').textContent  = '0.91';
 
-  // Generate findings based on the actual probability
   const findings = buildFindings(isPositive, positiveProb);
-  const list = document.getElementById('findingsList');
-  list.innerHTML = findings.map(f =>
+  document.getElementById('findingsList').innerHTML = findings.map(f =>
     `<div class="finding-item">
       <div class="finding-dot" style="background:${f.color}"></div>
       <span>${f.text}</span>
@@ -675,53 +762,44 @@ function showResults(data) {
   ).join('');
 }
 
-// Derive findings dynamically from the real model output instead of hardcoding
 function buildFindings(isPositive, prob) {
   if (isPositive) {
-    const findings = [];
-    if (prob >= 0.85) {
-      findings.push({ color: '#f87171', text: 'Strong model activation in pelvic region — high confidence positive result' });
-    } else if (prob >= 0.65) {
-      findings.push({ color: '#f87171', text: 'Moderate-to-high activation in pelvic region consistent with endometriosis markers' });
-    } else {
-      findings.push({ color: '#fbbf24', text: 'Marginal positive classification — borderline probability, interpret with caution' });
-    }
-    findings.push({ color: '#fbbf24', text: 'Grad-CAM attention map highlights region(s) of interest — review overlay for location' });
-    findings.push({ color: '#fbbf24', text: 'Clinical correlation and specialist review strongly recommended' });
-    return findings;
+    const f = [];
+    if (prob >= 0.85)
+      f.push({ color: '#e8527a', text: 'Strong model activation in pelvic region — high confidence positive result' });
+    else if (prob >= 0.65)
+      f.push({ color: '#e8527a', text: 'Moderate-to-high activation in pelvic region consistent with endometriosis markers' });
+    else
+      f.push({ color: '#c97b2a', text: 'Marginal positive classification — borderline probability, interpret with caution' });
+    f.push({ color: '#c97b2a', text: 'Grad-CAM attention map highlights region(s) of interest — review overlay for location' });
+    f.push({ color: '#c97b2a', text: 'Clinical correlation and specialist review strongly recommended' });
+    return f;
   } else {
-    const findings = [];
-    if (prob <= 0.15) {
-      findings.push({ color: '#4ade80', text: 'Low model activation across pelvic structures — high confidence negative result' });
-    } else {
-      findings.push({ color: '#4ade80', text: 'No dominant endometriosis markers detected; probability below classification threshold' });
-    }
-    findings.push({ color: '#4ade80', text: 'Pelvic region anatomy within expected normal range for this model' });
-    findings.push({ color: '#7a7c8e', text: 'A negative result does not exclude endometriosis — clinical evaluation is still advised' });
-    return findings;
+    const f = [];
+    if (prob <= 0.15)
+      f.push({ color: '#2d9e6b', text: 'Low model activation across pelvic structures — high confidence negative result' });
+    else
+      f.push({ color: '#2d9e6b', text: 'No dominant endometriosis markers detected; probability below classification threshold' });
+    f.push({ color: '#2d9e6b', text: 'Pelvic region anatomy within expected normal range for this model' });
+    f.push({ color: '#a07080', text: 'A negative result does not exclude endometriosis — clinical evaluation is still advised' });
+    return f;
   }
 }
 
 function reset() {
-  dropZone.style.display   = 'block';
+  dropZone.style.display    = 'block';
   analysisPanel.classList.remove('active');
   resultsCard.style.display  = 'none';
   warningStrip.style.display = 'none';
   resetBtn.style.display     = 'none';
-  spinner.style.display      = 'none';
+  spinnerWrap.style.display  = 'none';
   fileInput.value            = '';
   confBar.style.width        = '0%';
   confScore.textContent      = '—';
   resultBadge.textContent    = 'Analysing…';
   resultBadge.className      = 'result-badge badge-analyzing';
-
-  // Clear canvases
-  [baseCanvas, heatmapCanvas].forEach(c => {
-    c.getContext('2d').clearRect(0, 0, c.width, c.height);
-  });
+  [baseCanvas, heatmapCanvas].forEach(c => c.getContext('2d').clearRect(0, 0, c.width, c.height));
 }
-
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 </script>
 </body>
 </html>
