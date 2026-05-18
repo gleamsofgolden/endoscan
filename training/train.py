@@ -218,14 +218,15 @@ def main():
         transform=get_transforms(args.img_size, "val")
     )
 
-    # Weighted sampler to handle class imbalance
+    # Class imbalance handling — counts for loss weighting
     class_counts = np.bincount([s[1] for s in train_ds.samples])
     weights = 1.0 / class_counts
-    sample_weights = torch.tensor([weights[s[1]] for s in train_ds.samples])
-    sampler = torch.utils.data.WeightedRandomSampler(sample_weights, len(train_ds))
 
+    # FIX: REMOVE WeightedRandomSampler — it cancels out the loss weights!
+    # Instead, let the loss function (CrossEntropyLoss with weight=) do the work.
+    # This forces the model to learn positive cases properly, not just see balanced batches.
     train_loader = DataLoader(train_ds, batch_size=args.batch_size,
-                              sampler=sampler, num_workers=4, pin_memory=True)
+                              shuffle=True, num_workers=4, pin_memory=True)
     val_loader   = DataLoader(val_ds,   batch_size=args.batch_size,
                               shuffle=False, num_workers=4, pin_memory=True)
 
@@ -307,7 +308,12 @@ def main():
     print(f"\n{'='*55}")
     print("  Final Evaluation on Validation Set")
     print(f"{'='*55}")
-    pred_labels = [1 if p >= 0.5 else 0 for p in probs]
+    
+    # IMPORTANT: For medical AI detecting disease, lower the threshold.
+    # Default 0.5 is too conservative — use 0.3-0.4 to catch more positive cases.
+    # Sensitivity (catching real endometriosis) is more important than specificity.
+    INFERENCE_THRESHOLD = 0.35  # <-- Tune this based on sensitivity/specificity tradeoff
+    pred_labels = [1 if p >= INFERENCE_THRESHOLD else 0 for p in probs]
     print(classification_report(labels, pred_labels, target_names=train_ds.classes))
     print("Confusion Matrix:")
     print(confusion_matrix(labels, pred_labels))

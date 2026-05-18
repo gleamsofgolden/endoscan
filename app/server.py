@@ -211,10 +211,19 @@ def analyze():
         logits  = model_obj(tensor)
         probs   = torch.softmax(logits, dim=1)[0].cpu().numpy()
 
-    predicted_idx = int(np.argmax(probs))
     positive_idx  = next(k for k, v in idx_to_class_map.items() if v == "positive")
     positive_prob = float(probs[positive_idx])
-    prediction    = idx_to_class_map[predicted_idx]
+    
+    # FIX: Use threshold instead of argmax
+    # Since we removed WeightedRandomSampler, the model outputs lower confidence
+    # Threshold of 0.35-0.40 catches more positive cases (higher sensitivity)
+    INFERENCE_THRESHOLD = 0.40
+    if positive_prob >= INFERENCE_THRESHOLD:
+        predicted_idx = positive_idx
+        prediction = "positive"
+    else:
+        predicted_idx = 1 - positive_idx  # negative class
+        prediction = "negative"
 
     return jsonify({
         "prediction":           prediction,
