@@ -179,8 +179,8 @@ device_obj = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # Safe defaults so gunicorn/Railway doesn't crash on import
 class _Args:
     model   = os.environ.get("MODEL_PATH", "models/best_model.pt")
-    app_dir = os.environ.get("APP_DIR",    "app")
-    port    = int(os.environ.get("PORT",   5000))
+    app_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".")
+    port    = int(os.environ.get("PORT",   8080))
     host    = "0.0.0.0"
 
 args_obj = _Args()
