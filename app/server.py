@@ -172,9 +172,17 @@ def load_image(file_bytes, filename):
 
 app = Flask(__name__)
 model_obj = None
-idx_to_class_map = None
-device_obj = None
-args_obj = None
+idx_to_class_map = {0: "negative", 1: "positive"}
+device_obj = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# Safe defaults so gunicorn/Railway doesn't crash on import
+class _Args:
+    model   = os.environ.get("MODEL_PATH", "models/best_model.pt")
+    app_dir = os.environ.get("APP_DIR",    "app")
+    port    = int(os.environ.get("PORT",   5000))
+    host    = "0.0.0.0"
+
+args_obj = _Args()
 
 
 @app.route("/")
