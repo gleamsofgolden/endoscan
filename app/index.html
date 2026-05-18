@@ -5,566 +5,454 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EndoScan AI — Endometriosis Detection</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Nunito:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --bg: #fce4ec;
-    --surface: rgba(255,255,255,0.45);
-    --surface2: rgba(255,240,245,0.55);
-    --glass: rgba(255,255,255,0.35);
-    --glass-strong: rgba(255,255,255,0.6);
-    --border: rgba(236,100,130,0.18);
-    --border2: rgba(236,100,130,0.28);
-    --border-glass: rgba(255,255,255,0.55);
-    --text: #2d1a22;
-    --muted: #a07080;
-    --accent: #e8527a;
-    --accent2: #d63d67;
-    --accent-light: #ffd6e0;
-    --positive: #2d9e6b;
-    --negative: #e8527a;
-    --teal: #2d9e6b;
-    --amber: #c97b2a;
-    --pink-soft: #f9c5d1;
-    --pink-mid: #f48fb1;
-    --rose: #c2185b;
-  }
-
-  body {
-    font-family: 'Nunito', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* Rich layered background so glass has something to blur */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 70% 55% at 5%  0%,   rgba(255,105,155,0.55) 0%, transparent 55%),
-      radial-gradient(ellipse 55% 50% at 95% 100%,  rgba(255,180,200,0.5)  0%, transparent 55%),
-      radial-gradient(ellipse 60% 45% at 80% 10%,   rgba(252,130,170,0.35) 0%, transparent 50%),
-      radial-gradient(ellipse 50% 60% at 15% 85%,   rgba(255,150,180,0.3)  0%, transparent 55%),
-      radial-gradient(ellipse 80% 80% at 50% 50%,   rgba(255,220,230,0.4)  0%, transparent 70%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  body::after {
-    content: '';
-    position: fixed;
-    top: -150px; right: -150px;
-    width: 600px; height: 600px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(232,82,122,0.25) 0%, transparent 65%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .wrap {
-    position: relative;
-    z-index: 1;
-    max-width: 880px;
-    margin: 0 auto;
-    padding: 2.5rem 1.5rem 5rem;
-  }
-
-  .header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 3rem;
-  }
-
-  .logo {
-    width: 48px; height: 48px;
-    background: linear-gradient(135deg, #e8527a, #c2185b);
-    border-radius: 16px;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 20px rgba(232,82,122,0.35);
-    flex-shrink: 0;
-  }
-
-  .logo svg { width: 24px; height: 24px; fill: white; }
-
-  .brand-name {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.6rem;
-    color: var(--accent2);
-    letter-spacing: -0.01em;
-  }
-
-  .brand-sub {
-    font-size: 0.7rem;
-    color: var(--muted);
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    margin-top: 2px;
-    font-weight: 600;
-  }
-
-  .disclaimer-badge {
-    margin-left: auto;
-    background: rgba(255,255,255,0.4);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(201,123,42,0.35);
-    color: var(--amber);
-    font-size: 0.68rem;
-    font-weight: 600;
-    padding: 5px 14px;
-    border-radius: 999px;
-    letter-spacing: 0.05em;
-    white-space: nowrap;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
-  }
-
-  .tagline {
-    text-align: center;
-    margin-bottom: 2.5rem;
-  }
-
-  .tagline h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: 2rem;
-    font-weight: 600;
-    color: var(--accent2);
-    margin-bottom: 0.5rem;
-    line-height: 1.25;
-  }
-
-  .tagline h1 em {
-    font-style: italic;
-    color: var(--accent);
-  }
-
-  .tagline p {
-    font-size: 0.88rem;
-    color: var(--muted);
-    max-width: 420px;
-    margin: 0 auto;
-    line-height: 1.6;
-  }
-
-  .upload-area {
-    border: 1.5px dashed rgba(255,255,255,0.75);
-    border-radius: 24px;
-    padding: 3.5rem 2rem;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    background: rgba(255,255,255,0.4);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    box-shadow: 0 8px 32px rgba(232,82,122,0.12), inset 0 1px 0 rgba(255,255,255,0.85);
-  }
-
-  .upload-area:hover, .upload-area.drag-over {
-    border-color: rgba(255,255,255,1);
-    background: rgba(255,255,255,0.62);
-    transform: translateY(-3px);
-    box-shadow: 0 16px 48px rgba(232,82,122,0.2), inset 0 1px 0 rgba(255,255,255,0.95);
-  }
-
-  .upload-icon {
-    width: 64px; height: 64px;
-    background: linear-gradient(135deg, #fce4ec, #f8bbd0);
-    border-radius: 20px;
-    display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 1.2rem;
-    box-shadow: 0 4px 15px rgba(232,82,122,0.2);
-  }
-
-  .upload-icon svg { width: 30px; height: 30px; stroke: var(--accent); fill: none; }
-
-  .upload-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.25rem;
-    color: var(--text);
-    margin-bottom: 0.4rem;
-  }
-
-  .upload-sub {
-    font-size: 0.82rem;
-    color: var(--muted);
-    margin-bottom: 1.6rem;
-    line-height: 1.5;
-  }
-
-  .upload-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: linear-gradient(135deg, #e8527a, #c2185b);
-    color: white;
-    font-family: 'Nunito', sans-serif;
-    font-size: 0.88rem;
-    font-weight: 600;
-    padding: 12px 26px;
-    border-radius: 999px;
-    border: none;
-    cursor: pointer;
-    transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s;
-    box-shadow: 0 4px 20px rgba(232,82,122,0.4);
-    letter-spacing: 0.02em;
-  }
-
-  .upload-btn:hover { opacity: 0.92; transform: translateY(-1px); box-shadow: 0 6px 28px rgba(232,82,122,0.5); }
-  .upload-btn:active { transform: scale(0.97); }
-
-  #fileInput { display: none; }
-
-  .formats {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 1.5rem;
-    flex-wrap: wrap;
-  }
-
-  .fmt-tag {
-    background: rgba(255,255,255,0.5);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255,255,255,0.7);
-    font-size: 0.68rem;
-    color: var(--muted);
-    padding: 3px 11px;
-    border-radius: 6px;
-    font-weight: 600;
-    letter-spacing: 0.07em;
-  }
-
-  .analysis-panel {
-    display: none;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.25rem;
-    margin-top: 1.25rem;
-  }
-
-  .analysis-panel.active { display: grid; }
-
-  .panel-card {
-    background: rgba(255,255,255,0.42);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(255,255,255,0.6);
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 8px 32px rgba(232,82,122,0.1), inset 0 1px 0 rgba(255,255,255,0.8);
-  }
-
-  .panel-header {
-    padding: 13px 18px;
-    border-bottom: 1px solid rgba(255,255,255,0.5);
-    font-size: 0.7rem;
-    color: var(--muted);
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    background: rgba(255,240,245,0.5);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-  }
-
-  .image-preview {
-    width: 100%;
-    aspect-ratio: 1;
-    object-fit: contain;
-    background: #fff8f9;
-    display: block;
-  }
-
-  .heatmap-container {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 1;
-    background: #fff8f9;
-  }
-
-  .heatmap-container canvas {
-    position: absolute;
-    inset: 0;
-    width: 100% !important;
-    height: 100% !important;
-  }
-
-  .results-card {
-    background: rgba(255,255,255,0.42);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.6);
-    border-radius: 20px;
-    padding: 1.75rem 2rem;
-    margin-top: 1.25rem;
-    box-shadow: 0 8px 32px rgba(232,82,122,0.1), inset 0 1px 0 rgba(255,255,255,0.8);
-  }
-
-  .result-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 1.5rem;
-  }
-
-  .result-badge {
-    padding: 7px 18px;
-    border-radius: 999px;
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-  }
-
-  .badge-positive {
-    background: rgba(232,82,122,0.1);
-    color: var(--accent2);
-    border: 1.5px solid rgba(232,82,122,0.35);
-  }
-
-  .badge-negative {
-    background: rgba(45,158,107,0.08);
-    color: var(--positive);
-    border: 1.5px solid rgba(45,158,107,0.3);
-  }
-
-  .badge-analyzing {
-    background: rgba(232,82,122,0.08);
-    color: var(--accent);
-    border: 1.5px solid rgba(232,82,122,0.2);
-    animation: pulse 1.5s ease-in-out infinite;
-  }
-
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
-
-  .confidence-label {
-    font-size: 0.78rem;
-    color: var(--muted);
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-  }
-
-  .confidence-track {
-    height: 10px;
-    background: var(--surface2);
-    border-radius: 999px;
-    overflow: hidden;
-    margin-bottom: 0.4rem;
-  }
-
-  .confidence-fill {
-    height: 100%;
-    border-radius: 999px;
-    transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);
-    width: 0%;
-  }
-
-  .fill-positive { background: linear-gradient(90deg, #f48fb1, #c2185b); }
-  .fill-negative { background: linear-gradient(90deg, #81c784, #2d9e6b); }
-
-  .confidence-value {
-    font-size: 0.75rem;
-    color: var(--muted);
-    text-align: right;
-  }
-
-  .metrics {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-top: 1.3rem;
-  }
-
-  .metric-box {
-    background: rgba(255,255,255,0.35);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-radius: 14px;
-    padding: 14px 16px;
-    border: 1px solid rgba(255,255,255,0.55);
-    text-align: center;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
-  }
-
-  .metric-label {
-    font-size: 0.66rem;
-    color: var(--muted);
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
-    margin-bottom: 5px;
-    font-weight: 700;
-  }
-
-  .metric-val {
-    font-size: 1.4rem;
-    font-weight: 400;
-    font-family: 'Playfair Display', serif;
-  }
-
-  .findings {
-    margin-top: 1.4rem;
-    border-top: 1px solid var(--border);
-    padding-top: 1.3rem;
-  }
-
-  .findings-title {
-    font-size: 0.7rem;
-    color: var(--muted);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    margin-bottom: 0.9rem;
-    font-weight: 700;
-  }
-
-  .finding-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    font-size: 0.83rem;
-    color: #6b3a4a;
-    margin-bottom: 0.6rem;
-    line-height: 1.55;
-  }
-
-  .finding-dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    margin-top: 6px;
-    flex-shrink: 0;
-  }
-
-  .warning-strip {
-    background: rgba(255,248,230,0.45);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(201,123,42,0.3);
-    border-radius: 14px;
-    padding: 14px 18px;
-    margin-top: 1.25rem;
-    font-size: 0.78rem;
-    color: #8a5c1a;
-    display: flex;
-    gap: 10px;
-    align-items: flex-start;
-    line-height: 1.6;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
-  }
-
-  .warning-icon { flex-shrink: 0; margin-top: 1px; }
-
-  .spinner-wrap {
-    text-align: center;
-    padding: 2.5rem 0;
-    display: none;
-  }
-
-  .spinner {
-    width: 36px; height: 36px;
-    border: 3px solid var(--pink-soft);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.75s linear infinite;
-    margin: 0 auto 1rem;
-  }
-
-  .spinner-text {
-    font-size: 0.82rem;
-    color: var(--muted);
-    font-style: italic;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .reset-btn {
-    background: rgba(255,255,255,0.35);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.6);
-    color: var(--muted);
-    font-family: 'Nunito', sans-serif;
-    font-size: 0.8rem;
-    font-weight: 600;
-    padding: 9px 20px;
-    border-radius: 999px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    margin-top: 1rem;
-    display: none;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
-  }
-
-  .reset-btn:hover { color: var(--accent2); border-color: var(--accent); background: rgba(255,255,255,0.55); }
-
-  .heatmap-legend {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 18px;
-    border-top: 1px solid rgba(255,255,255,0.5);
-    font-size: 0.68rem;
-    color: var(--muted);
-    font-weight: 600;
-    background: rgba(255,240,245,0.4);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-  }
-
-  .legend-bar {
-    flex: 1;
-    height: 6px;
-    border-radius: 3px;
-    background: linear-gradient(90deg, #2563eb, #16a34a, #fbbf24, #ef4444);
-  }
-
-  .petal {
-    position: fixed;
-    border-radius: 50% 0 50% 0;
-    opacity: 0.06;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .petal-1 { width: 220px; height: 220px; background: var(--accent); top: 8%; left: -70px; transform: rotate(30deg); }
-  .petal-2 { width: 160px; height: 160px; background: var(--pink-mid); bottom: 18%; right: -50px; transform: rotate(-20deg); }
-  .petal-3 { width: 110px; height: 110px; background: var(--accent2); top: 58%; left: 3%; transform: rotate(45deg); }
-
-  @media (max-width: 640px) {
-    .analysis-panel { grid-template-columns: 1fr; }
-    .tagline h1 { font-size: 1.5rem; }
-  }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:            #f5f0f8;
+  --bg2:           #ede6f5;
+  --white:         #ffffff;
+  --surface:       rgba(255,255,255,0.72);
+  --surface2:      rgba(255,255,255,0.5);
+  --border:        rgba(200,170,220,0.35);
+  --border2:       rgba(200,170,220,0.6);
+  --text:          #1a0e2e;
+  --text2:         #3d2c55;
+  --muted:         #8a7a9e;
+  --muted2:        #b8a8cc;
+  --pink:          #e8427c;
+  --pink2:         #c4185a;
+  --pink-light:    #fde8f2;
+  --pink-glow:     rgba(232,66,124,0.18);
+  --violet:        #7c5cbf;
+  --violet-light:  #ede6f5;
+  --teal:          #18a07a;
+  --amber:         #c97b2a;
+  --red:           #e8427c;
+  --positive:      #18a07a;
+  --negative:      #e8427c;
+}
+
+body {
+  font-family: 'Rethink Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Background mesh */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 0% 0%,   rgba(200,160,240,0.45) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 100% 100%, rgba(232,66,124,0.22) 0%, transparent 55%),
+    radial-gradient(ellipse 55% 45% at 100% 0%,  rgba(140,100,220,0.2)  0%, transparent 50%),
+    radial-gradient(ellipse 70% 70% at 50% 50%,  rgba(245,235,255,0.6)  0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+
+/* Floating orbs */
+.orb {
+  position: fixed; border-radius: 50%;
+  pointer-events: none; z-index: 0;
+  filter: blur(60px);
+}
+.orb-1 { width:420px; height:420px; top:-100px; left:-100px; background:rgba(180,130,240,0.3); }
+.orb-2 { width:320px; height:320px; bottom:-80px; right:-80px; background:rgba(232,66,124,0.22); }
+.orb-3 { width:200px; height:200px; top:40%; left:60%; background:rgba(100,180,240,0.15); }
+
+.wrap {
+  position: relative; z-index: 1;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 5rem;
+}
+
+/* ── HEADER ── */
+.header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 3.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border2);
+}
+
+.logo {
+  width: 44px; height: 44px; flex-shrink: 0;
+  background: linear-gradient(135deg, #e8427c, #7c5cbf);
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 18px rgba(232,66,124,0.35), 0 0 0 1px rgba(255,255,255,0.4) inset;
+}
+.logo svg { width: 22px; height: 22px; fill: white; }
+
+.brand-name {
+  font-size: 1.25rem; font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+.brand-name span { color: var(--pink); }
+
+.brand-sub {
+  font-size: 0.68rem; font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+
+.header-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(201,123,42,0.1);
+  border: 1px solid rgba(201,123,42,0.3);
+  color: var(--amber);
+  font-size: 0.67rem; font-weight: 700;
+  padding: 5px 13px; border-radius: 999px;
+  letter-spacing: 0.06em; white-space: nowrap;
+}
+.badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--amber); animation: blink 2s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ── HERO ── */
+.hero {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.hero-label {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--pink-light);
+  border: 1px solid rgba(232,66,124,0.25);
+  color: var(--pink);
+  font-size: 0.72rem; font-weight: 700;
+  padding: 5px 16px; border-radius: 999px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 1.4rem;
+}
+
+.hero h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  margin-bottom: 1rem;
+}
+
+.hero h1 .grad {
+  background: linear-gradient(120deg, #e8427c 0%, #7c5cbf 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+.hero p {
+  font-size: 1rem; font-weight: 400;
+  color: var(--muted);
+  max-width: 460px; margin: 0 auto;
+  line-height: 1.7;
+}
+
+/* ── STATS ROW ── */
+.stats-row {
+  display: flex; gap: 1px;
+  background: var(--border2);
+  border-radius: 18px; overflow: hidden;
+  margin-bottom: 2.5rem;
+  border: 1px solid var(--border2);
+}
+.stat-item {
+  flex: 1; background: var(--surface);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  padding: 1.1rem 1rem; text-align: center;
+}
+.stat-val {
+  font-size: 1.6rem; font-weight: 800;
+  letter-spacing: -0.03em; line-height: 1;
+  margin-bottom: 3px;
+}
+.stat-val.pink  { color: var(--pink); }
+.stat-val.violet { color: var(--violet); }
+.stat-val.teal  { color: var(--teal); }
+.stat-label { font-size: 0.67rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.09em; }
+
+/* ── UPLOAD AREA ── */
+.upload-area {
+  border: 2px dashed rgba(200,160,220,0.5);
+  border-radius: 24px; padding: 3.5rem 2rem;
+  text-align: center; cursor: pointer;
+  transition: all 0.25s ease;
+  background: var(--surface);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 8px 40px rgba(180,120,240,0.1), inset 0 1px 0 rgba(255,255,255,0.9);
+  position: relative; overflow: hidden;
+}
+.upload-area::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 60% at 50% 0%, rgba(232,66,124,0.06), transparent);
+  pointer-events: none;
+}
+.upload-area:hover, .upload-area.drag-over {
+  border-color: rgba(232,66,124,0.5);
+  background: rgba(255,255,255,0.85);
+  transform: translateY(-2px);
+  box-shadow: 0 16px 56px rgba(180,120,240,0.15), inset 0 1px 0 rgba(255,255,255,1);
+}
+
+.upload-icon-wrap {
+  width: 72px; height: 72px; border-radius: 22px;
+  background: linear-gradient(135deg, #fde8f2, #ede6f5);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 1.3rem;
+  box-shadow: 0 4px 16px rgba(232,66,124,0.15), inset 0 1px 0 rgba(255,255,255,0.8);
+}
+.upload-icon-wrap svg { width: 32px; height: 32px; stroke: var(--pink); fill: none; stroke-width: 1.75; }
+
+.upload-title {
+  font-size: 1.3rem; font-weight: 700;
+  color: var(--text); margin-bottom: 0.35rem; letter-spacing: -0.01em;
+}
+.upload-sub { font-size: 0.83rem; color: var(--muted); margin-bottom: 1.7rem; line-height: 1.6; }
+
+.upload-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg, #e8427c, #7c5cbf);
+  color: white; font-family: 'Rethink Sans', sans-serif;
+  font-size: 0.88rem; font-weight: 700;
+  padding: 13px 28px; border-radius: 999px; border: none; cursor: pointer;
+  transition: all 0.18s ease;
+  box-shadow: 0 4px 24px rgba(232,66,124,0.4), 0 1px 0 rgba(255,255,255,0.2) inset;
+  letter-spacing: 0.01em;
+}
+.upload-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(232,66,124,0.5), 0 1px 0 rgba(255,255,255,0.2) inset; }
+.upload-btn:active { transform: scale(0.97); }
+#fileInput { display: none; }
+
+.formats {
+  display: flex; justify-content: center; gap: 7px;
+  margin-top: 1.6rem; flex-wrap: wrap;
+}
+.fmt-tag {
+  background: rgba(255,255,255,0.65);
+  border: 1px solid var(--border2);
+  font-size: 0.65rem; color: var(--muted2);
+  padding: 3px 10px; border-radius: 6px; font-weight: 700; letter-spacing: 0.07em;
+}
+
+/* ── SPINNER ── */
+.spinner-wrap { text-align: center; padding: 3rem 0; display: none; }
+.spinner {
+  width: 40px; height: 40px; border-radius: 50%;
+  border: 3px solid var(--pink-light);
+  border-top-color: var(--pink);
+  animation: spin 0.7s linear infinite;
+  margin: 0 auto 1rem;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner-text { font-size: 0.85rem; color: var(--muted); font-style: italic; font-weight: 500; }
+
+/* ── ANALYSIS PANEL ── */
+.analysis-panel {
+  display: none; grid-template-columns: 1fr 1fr;
+  gap: 1rem; margin-top: 1rem;
+}
+.analysis-panel.active { display: grid; }
+
+.panel-card {
+  background: var(--surface);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border2);
+  border-radius: 20px; overflow: hidden;
+  box-shadow: 0 4px 24px rgba(180,120,240,0.1), inset 0 1px 0 rgba(255,255,255,0.9);
+}
+.panel-header {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.68rem; font-weight: 700;
+  color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase;
+  background: rgba(255,255,255,0.5);
+}
+.image-preview {
+  width: 100%; aspect-ratio: 1; object-fit: contain;
+  background: #0c0814; display: block;
+}
+
+/* ── RESULTS CARD ── */
+.results-card {
+  background: var(--surface);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border2);
+  border-radius: 24px; padding: 2rem 2.2rem;
+  margin-top: 1rem;
+  box-shadow: 0 4px 32px rgba(180,120,240,0.1), inset 0 1px 0 rgba(255,255,255,0.9);
+}
+
+.result-header {
+  display: flex; align-items: flex-start; gap: 16px; margin-bottom: 1.8rem;
+  padding-bottom: 1.5rem; border-bottom: 1px solid var(--border);
+}
+.result-header-left { flex: 1; }
+.result-eyebrow {
+  font-size: 0.65rem; font-weight: 700; color: var(--muted);
+  letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px;
+}
+
+.result-badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 20px; border-radius: 999px;
+  font-size: 0.82rem; font-weight: 700; letter-spacing: 0.03em;
+}
+.badge-positive { background: rgba(232,66,124,0.1); color: var(--pink2); border: 1.5px solid rgba(232,66,124,0.3); }
+.badge-negative { background: rgba(24,160,122,0.08); color: var(--teal); border: 1.5px solid rgba(24,160,122,0.28); }
+.badge-analyzing { background: rgba(124,92,191,0.08); color: var(--violet); border: 1.5px solid rgba(124,92,191,0.22); animation: pulse 1.5s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+.result-score-block { text-align: right; flex-shrink: 0; }
+.result-score {
+  font-size: 2.8rem; font-weight: 800; line-height: 1;
+  letter-spacing: -0.04em; color: var(--text);
+}
+.result-score-label { font-size: 0.68rem; font-weight: 600; color: var(--muted); margin-top: 3px; letter-spacing: 0.06em; text-transform: uppercase; }
+
+/* Probability bar */
+.prob-section { margin-bottom: 1.6rem; }
+.prob-label-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 7px;
+}
+.prob-label { font-size: 0.78rem; font-weight: 600; color: var(--text2); }
+.prob-value { font-size: 0.78rem; font-weight: 700; color: var(--pink); }
+.prob-track {
+  height: 9px; background: rgba(180,140,220,0.15); border-radius: 999px; overflow: hidden;
+}
+.prob-fill {
+  height: 100%; border-radius: 999px; width: 0%;
+  transition: width 1.1s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+.prob-fill.positive { background: linear-gradient(90deg, #f48fb1, #c4185a); }
+.prob-fill.negative { background: linear-gradient(90deg, #5dd8b4, #18a07a); }
+.prob-sub { font-size: 0.72rem; color: var(--muted); margin-top: 5px; text-align: right; }
+
+/* Metrics */
+.metrics {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 10px; margin-bottom: 1.6rem;
+}
+.metric-box {
+  background: rgba(255,255,255,0.55);
+  border: 1px solid var(--border);
+  border-radius: 16px; padding: 14px 12px; text-align: center;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+}
+.metric-label { font-size: 0.63rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+.metric-val { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.03em; }
+
+/* Findings */
+.findings { border-top: 1px solid var(--border); padding-top: 1.4rem; }
+.findings-title { font-size: 0.68rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.9rem; }
+.finding-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 0.84rem; color: var(--text2); margin-bottom: 0.6rem; line-height: 1.55; font-weight: 500;
+}
+.finding-dot { width: 7px; height: 7px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+
+/* ── WARNING ── */
+.warning-strip {
+  background: rgba(255,248,230,0.6);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(201,123,42,0.28);
+  border-radius: 16px; padding: 14px 18px; margin-top: 1rem;
+  font-size: 0.78rem; color: #7a4f10; font-weight: 500;
+  display: flex; gap: 10px; align-items: flex-start; line-height: 1.65;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+}
+.warning-icon { flex-shrink: 0; font-size: 1rem; margin-top: 1px; }
+
+/* ── RESET ── */
+.reset-btn {
+  background: rgba(255,255,255,0.5);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--border2);
+  color: var(--muted); font-family: 'Rethink Sans', sans-serif;
+  font-size: 0.8rem; font-weight: 700;
+  padding: 10px 22px; border-radius: 999px; cursor: pointer;
+  transition: all 0.2s ease; margin-top: 1rem; display: none;
+  letter-spacing: 0.02em;
+}
+.reset-btn:hover { color: var(--pink); border-color: rgba(232,66,124,0.4); background: rgba(255,255,255,0.8); }
+
+/* ── FOOTER ── */
+.footer {
+  text-align: center; margin-top: 3rem; padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.72rem; color: var(--muted2); font-weight: 500;
+}
+
+@media (max-width: 600px) {
+  .analysis-panel { grid-template-columns: 1fr; }
+  .hero h1 { font-size: 1.9rem; }
+  .stats-row { flex-direction: column; gap: 0; }
+  .metrics { grid-template-columns: repeat(3, 1fr); }
+}
 </style>
 </head>
 <body>
 
-<div class="petal petal-1"></div>
-<div class="petal petal-2"></div>
-<div class="petal petal-3"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
 
 <div class="wrap">
 
+  <!-- HEADER -->
   <header class="header">
     <div class="logo">
       <svg viewBox="0 0 24 24"><path d="M12 2C8 2 4 6 4 10c0 5.25 8 14 8 14s8-8.75 8-14c0-4-4-8-8-8zm0 10a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/></svg>
     </div>
     <div>
-      <div class="brand-name">EndoScan AI</div>
+      <div class="brand-name">Endo<span>Scan</span> AI</div>
       <div class="brand-sub">Endometriosis Detection</div>
     </div>
-    <div class="disclaimer-badge">⚠ Research Prototype</div>
+    <div class="header-right">
+      <div class="badge"><span class="badge-dot"></span>Research Prototype</div>
+    </div>
   </header>
 
-  <div class="tagline">
-    <h1>Scan with <em>clarity,</em><br>act with confidence</h1>
-    <p>AI-powered analysis of pelvic MRI and ultrasound scans to support earlier endometriosis detection.</p>
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-label">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      AI-Powered MRI Analysis
+    </div>
+    <h1>Scan with <span class="grad">clarity,</span><br>act with confidence</h1>
+    <p>AI-assisted analysis of pelvic MRI scans to support earlier endometriosis detection and specialist review.</p>
   </div>
 
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-item">
+      <div class="stat-val pink">87%</div>
+      <div class="stat-label">Sensitivity</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val violet">81%</div>
+      <div class="stat-label">Specificity</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-val teal">0.91</div>
+      <div class="stat-label">AUC Score</div>
+    </div>
+  </div>
+
+  <!-- UPLOAD -->
   <div class="upload-area" id="dropZone">
-    <div class="upload-icon">
-      <svg viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+    <div class="upload-icon-wrap">
+      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+      </svg>
     </div>
     <div class="upload-title">Drop your scan here</div>
     <div class="upload-sub">Pelvic MRI or ultrasound image — DICOM files also supported</div>
@@ -582,47 +470,46 @@
     </div>
   </div>
 
+  <!-- SPINNER -->
   <div class="spinner-wrap" id="spinnerWrap">
     <div class="spinner"></div>
     <div class="spinner-text">Analysing your scan, please wait…</div>
   </div>
 
+  <!-- ANALYSIS PANEL -->
   <div class="analysis-panel" id="analysisPanel">
     <div class="panel-card">
       <div class="panel-header">Original scan</div>
       <img class="image-preview" id="previewImg" src="" alt="Uploaded scan" />
     </div>
     <div class="panel-card">
-      <div class="panel-header">Grad-CAM attention map</div>
-      <div class="heatmap-container">
-        <canvas id="baseCanvas"></canvas>
-        <canvas id="heatmapCanvas"></canvas>
-      </div>
-      <div class="heatmap-legend">
-        <span>Low</span>
-        <div class="legend-bar"></div>
-        <span>High attention</span>
-      </div>
+      <div class="panel-header">Scan — inverted contrast</div>
+      <canvas id="contrastCanvas" style="width:100%;aspect-ratio:1;display:block;background:#0c0814;"></canvas>
     </div>
   </div>
 
+  <!-- RESULTS -->
   <div class="results-card" id="resultsCard" style="display:none;">
     <div class="result-header">
-      <div>
-        <div style="font-size:0.68rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;font-weight:700;">Classification result</div>
+      <div class="result-header-left">
+        <div class="result-eyebrow">Classification result</div>
         <div id="resultBadge" class="result-badge badge-analyzing">Analysing…</div>
       </div>
-      <div style="margin-left:auto;text-align:right">
-        <div style="font-family:'Playfair Display',serif;font-size:2.4rem;line-height:1;color:var(--accent2)" id="confScore">—</div>
-        <div style="font-size:0.7rem;color:var(--muted);font-weight:600;">confidence</div>
+      <div class="result-score-block">
+        <div class="result-score" id="confScore">—</div>
+        <div class="result-score-label">confidence</div>
       </div>
     </div>
 
-    <div class="confidence-label">Endometriosis probability</div>
-    <div class="confidence-track">
-      <div class="confidence-fill fill-positive" id="confBar"></div>
+    <div class="prob-section">
+      <div class="prob-label-row">
+        <span class="prob-label">Endometriosis probability</span>
+        <span class="prob-value" id="confText">—</span>
+      </div>
+      <div class="prob-track">
+        <div class="prob-fill positive" id="confBar"></div>
+      </div>
     </div>
-    <div class="confidence-value" id="confText">0%</div>
 
     <div class="metrics">
       <div class="metric-box">
@@ -631,7 +518,7 @@
       </div>
       <div class="metric-box">
         <div class="metric-label">Specificity</div>
-        <div class="metric-val" id="metSpec" style="color:var(--accent)">—</div>
+        <div class="metric-val" id="metSpec" style="color:var(--violet)">—</div>
       </div>
       <div class="metric-box">
         <div class="metric-label">AUC</div>
@@ -652,23 +539,24 @@
 
   <button class="reset-btn" id="resetBtn" onclick="reset()">↩ Analyse another scan</button>
 
+  <div class="footer">EndoScan AI · Research use only · Not a medical device</div>
+
 </div>
 
 <script>
-const dropZone      = document.getElementById('dropZone');
-const fileInput     = document.getElementById('fileInput');
-const spinnerWrap   = document.getElementById('spinnerWrap');
-const analysisPanel = document.getElementById('analysisPanel');
-const resultsCard   = document.getElementById('resultsCard');
-const warningStrip  = document.getElementById('warningStrip');
-const resetBtn      = document.getElementById('resetBtn');
-const previewImg    = document.getElementById('previewImg');
-const baseCanvas    = document.getElementById('baseCanvas');
-const heatmapCanvas = document.getElementById('heatmapCanvas');
-const confBar       = document.getElementById('confBar');
-const confText      = document.getElementById('confText');
-const confScore     = document.getElementById('confScore');
-const resultBadge   = document.getElementById('resultBadge');
+const dropZone       = document.getElementById('dropZone');
+const fileInput      = document.getElementById('fileInput');
+const spinnerWrap    = document.getElementById('spinnerWrap');
+const analysisPanel  = document.getElementById('analysisPanel');
+const resultsCard    = document.getElementById('resultsCard');
+const warningStrip   = document.getElementById('warningStrip');
+const resetBtn       = document.getElementById('resetBtn');
+const previewImg     = document.getElementById('previewImg');
+const contrastCanvas = document.getElementById('contrastCanvas');
+const confBar        = document.getElementById('confBar');
+const confText       = document.getElementById('confText');
+const confScore      = document.getElementById('confScore');
+const resultBadge    = document.getElementById('resultBadge');
 
 dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
@@ -678,13 +566,16 @@ fileInput.addEventListener('change',   () => handleFile(fileInput.files[0]));
 function handleFile(file) {
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = e => { previewImg.src = e.target.result; };
+  reader.onload = e => {
+    previewImg.src = e.target.result;
+    drawContrastCanvas(e.target.result);
+  };
   reader.readAsDataURL(file);
   processImage(file);
 }
 
 async function processImage(file) {
-  dropZone.style.display    = 'none';
+  dropZone.style.display   = 'none';
   spinnerWrap.style.display = 'block';
   resultsCard.style.display = 'none';
   analysisPanel.classList.remove('active');
@@ -707,8 +598,6 @@ async function processImage(file) {
     resultsCard.style.display  = 'block';
     warningStrip.style.display = 'flex';
     resetBtn.style.display     = 'inline-block';
-
-    if (data.heatmap_base64) drawRealHeatmap(data.heatmap_base64);
     showResults(data);
 
   } catch (err) {
@@ -718,18 +607,26 @@ async function processImage(file) {
   }
 }
 
-function drawRealHeatmap(base64) {
+function drawContrastCanvas(dataUrl) {
   const img = new Image();
   img.onload = () => {
-    const container = heatmapCanvas.parentElement;
-    const w = container.offsetWidth  || 300;
-    const h = container.offsetHeight || 300;
-    baseCanvas.width = heatmapCanvas.width = w;
-    baseCanvas.height = heatmapCanvas.height = h;
-    baseCanvas.getContext('2d').clearRect(0, 0, w, h);
-    heatmapCanvas.getContext('2d').drawImage(img, 0, 0, w, h);
+    const w = img.naturalWidth  || 300;
+    const h = img.naturalHeight || 300;
+    contrastCanvas.width  = w;
+    contrastCanvas.height = h;
+    const ctx = contrastCanvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    const imageData = ctx.getImageData(0, 0, w, h);
+    const d = imageData.data;
+    for (let i = 0; i < d.length; i += 4) {
+      const avg = (d[i] + d[i+1] + d[i+2]) / 3;
+      const boosted = Math.min(255, Math.max(0, (avg - 128) * 1.8 + 128));
+      const inv = 255 - boosted;
+      d[i] = d[i+1] = d[i+2] = inv;
+    }
+    ctx.putImageData(imageData, 0, 0);
   };
-  img.src = 'data:image/png;base64,' + base64;
+  img.src = dataUrl;
 }
 
 function showResults(data) {
@@ -745,8 +642,8 @@ function showResults(data) {
 
   setTimeout(() => {
     confBar.style.width  = pct + '%';
-    confBar.className    = `confidence-fill ${isPositive ? 'fill-positive' : 'fill-negative'}`;
-    confText.textContent = pct + '% probability of endometriosis';
+    confBar.className    = `prob-fill ${isPositive ? 'positive' : 'negative'}`;
+    confText.textContent = pct + '%';
   }, 100);
 
   document.getElementById('metSens').textContent = '87%';
@@ -766,22 +663,21 @@ function buildFindings(isPositive, prob) {
   if (isPositive) {
     const f = [];
     if (prob >= 0.85)
-      f.push({ color: '#e8527a', text: 'Strong model activation in pelvic region — high confidence positive result' });
+      f.push({ color: '#e8427c', text: 'Strong model activation in pelvic region — high confidence positive result' });
     else if (prob >= 0.65)
-      f.push({ color: '#e8527a', text: 'Moderate-to-high activation in pelvic region consistent with endometriosis markers' });
+      f.push({ color: '#e8427c', text: 'Moderate-to-high activation in pelvic region consistent with endometriosis markers' });
     else
       f.push({ color: '#c97b2a', text: 'Marginal positive classification — borderline probability, interpret with caution' });
-    f.push({ color: '#c97b2a', text: 'Grad-CAM attention map highlights region(s) of interest — review overlay for location' });
     f.push({ color: '#c97b2a', text: 'Clinical correlation and specialist review strongly recommended' });
     return f;
   } else {
     const f = [];
     if (prob <= 0.15)
-      f.push({ color: '#2d9e6b', text: 'Low model activation across pelvic structures — high confidence negative result' });
+      f.push({ color: '#18a07a', text: 'Low model activation across pelvic structures — high confidence negative result' });
     else
-      f.push({ color: '#2d9e6b', text: 'No dominant endometriosis markers detected; probability below classification threshold' });
-    f.push({ color: '#2d9e6b', text: 'Pelvic region anatomy within expected normal range for this model' });
-    f.push({ color: '#a07080', text: 'A negative result does not exclude endometriosis — clinical evaluation is still advised' });
+      f.push({ color: '#18a07a', text: 'No dominant endometriosis markers detected; probability below classification threshold' });
+    f.push({ color: '#18a07a', text: 'Pelvic region anatomy within expected normal range for this model' });
+    f.push({ color: '#8a7a9e', text: 'A negative result does not exclude endometriosis — clinical evaluation is still advised' });
     return f;
   }
 }
@@ -798,7 +694,7 @@ function reset() {
   confScore.textContent      = '—';
   resultBadge.textContent    = 'Analysing…';
   resultBadge.className      = 'result-badge badge-analyzing';
-  [baseCanvas, heatmapCanvas].forEach(c => c.getContext('2d').clearRect(0, 0, c.width, c.height));
+  contrastCanvas.getContext('2d').clearRect(0, 0, contrastCanvas.width, contrastCanvas.height);
 }
 </script>
 </body>
