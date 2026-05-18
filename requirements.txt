@@ -9,4 +9,4 @@ pydicom>=2.3.0
 tqdm>=4.65.0
 flask>=3.0.0
 gunicorn>=21.2.0
-echo huggingface_hub 
+huggingface_hub
